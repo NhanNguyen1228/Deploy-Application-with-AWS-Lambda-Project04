@@ -1,8 +1,27 @@
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
+import { deleteTodo } from '../../bussinessLogic/todos.mjs'
+import { createLogger } from '../../utils/logger.mjs'
+import { getUserId } from '../utils.mjs'
 
-export function handler(event) {
-  const todoId = event.pathParameters.todoId
+const logger = createLogger('http')
 
-  // TODO: Remove a TODO item by id
-  return undefined
+const deleteTodoHandler = async (event) => {
+  logger.info('Starting deleteTodo event')
+
+  const { todoId } = event.pathParameters
+  const userId = getUserId(event)
+
+  await deleteTodo(userId, todoId)
+
+  logger.info('Completing deleteTodo event')
+
+  return {
+    statusCode: 204
+  }
 }
 
+export const handler = middy(deleteTodoHandler)
+  .use(httpErrorHandler())
+  .use(cors({ credentials: true }))
